@@ -28,34 +28,9 @@ if [ -z "$SSL_EMAIL" ]; then
 fi
 
 echo "Setting up SSL certificates for $DOMAIN..."
+echo "Step 1: Obtaining SSL certificate from Let's Encrypt..."
 
-# Create temporary nginx config for certificate generation
-cat > /tmp/nginx-certbot.conf << EOF
-server {
-    listen 80;
-    server_name ${DOMAIN};
-
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-    }
-
-    location / {
-        return 200 'OK';
-        add_header Content-Type text/plain;
-    }
-}
-EOF
-
-# Copy temporary config
-docker cp /tmp/nginx-certbot.conf strava-platform-nginx:/etc/nginx/conf.d/default.conf
-
-# Reload nginx
-docker exec strava-platform-nginx nginx -s reload
-
-# Wait a moment for nginx to reload
-sleep 2
-
-# Get certificate
+# Get certificate (nginx is already running with HTTP-only config)
 docker compose -f docker-compose.prod.yml run --rm certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
@@ -64,11 +39,17 @@ docker compose -f docker-compose.prod.yml run --rm certbot certonly \
     --no-eff-email \
     -d $DOMAIN
 
-# Regenerate nginx config with domain substitution
-docker exec strava-platform-nginx sh -c "envsubst '\$DOMAIN' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf"
+echo "Step 2: Switching nginx to HTTPS configuration..."
+
+# Switch nginx config to HTTPS version
+docker exec strava-platform-nginx sh -c "envsubst '\$DOMAIN' < /etc/nginx/templates/https.conf.template > /etc/nginx/conf.d/default.conf"
 
 # Reload nginx with SSL config
 docker exec strava-platform-nginx nginx -s reload
 
-echo "SSL certificates generated successfully!"
-echo "Certificates will auto-renew every 12 hours via certbot container."
+echo ""
+echo "✅ SSL certificates generated successfully!"
+echo "✅ Nginx configured for HTTPS"
+echo "✅ Certificates will auto-renew every 12 hours via certbot container"
+echo ""
+echo "Your site is now available at: https://$DOMAIN"
