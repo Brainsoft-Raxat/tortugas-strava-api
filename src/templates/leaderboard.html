@@ -345,10 +345,10 @@
                         <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[0].athlete_id }}">{{ leaderboard[0].athlete_name }}</a></div>
                         <div class="podium-points">{{ leaderboard[0].total_points }}</div>
                         <div class="podium-stats">
-                            <div><strong>{{ "%.2f"|format(leaderboard[0].total_time) }}</strong> hours</div>
+                            <div><strong>{{ (leaderboard[0].total_time|int) }}h {{ ((leaderboard[0].total_time % 1) * 60)|int }}m</strong></div>
                             <div><strong>{{ "%.2f"|format(leaderboard[0].total_distance) }}</strong> km</div>
                             {% if leaderboard[0].avg_pace %}
-                            <div><strong>{{ "%.2f"|format(leaderboard[0].avg_pace) }}</strong> min/km</div>
+                            <div><strong>{{ (leaderboard[0].avg_pace|int) }}:{{ "%02d"|format(((leaderboard[0].avg_pace % 1) * 60)|int) }}</strong> min/km</div>
                             {% endif %}
                             <div><strong>{{ leaderboard[0].days_active }}</strong> days active</div>
                         </div>
@@ -360,10 +360,10 @@
                         <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[1].athlete_id }}">{{ leaderboard[1].athlete_name }}</a></div>
                         <div class="podium-points">{{ leaderboard[1].total_points }}</div>
                         <div class="podium-stats">
-                            <div><strong>{{ "%.2f"|format(leaderboard[1].total_time) }}</strong> hours</div>
+                            <div><strong>{{ (leaderboard[1].total_time|int) }}h {{ ((leaderboard[1].total_time % 1) * 60)|int }}m</strong></div>
                             <div><strong>{{ "%.2f"|format(leaderboard[1].total_distance) }}</strong> km</div>
                             {% if leaderboard[1].avg_pace %}
-                            <div><strong>{{ "%.2f"|format(leaderboard[1].avg_pace) }}</strong> min/km</div>
+                            <div><strong>{{ (leaderboard[1].avg_pace|int) }}:{{ "%02d"|format(((leaderboard[1].avg_pace % 1) * 60)|int) }}</strong> min/km</div>
                             {% endif %}
                             <div><strong>{{ leaderboard[1].days_active }}</strong> days active</div>
                         </div>
@@ -375,10 +375,10 @@
                         <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[2].athlete_id }}">{{ leaderboard[2].athlete_name }}</a></div>
                         <div class="podium-points">{{ leaderboard[2].total_points }}</div>
                         <div class="podium-stats">
-                            <div><strong>{{ "%.2f"|format(leaderboard[2].total_time) }}</strong> hours</div>
+                            <div><strong>{{ (leaderboard[2].total_time|int) }}h {{ ((leaderboard[2].total_time % 1) * 60)|int }}m</strong></div>
                             <div><strong>{{ "%.2f"|format(leaderboard[2].total_distance) }}</strong> km</div>
                             {% if leaderboard[2].avg_pace %}
-                            <div><strong>{{ "%.2f"|format(leaderboard[2].avg_pace) }}</strong> min/km</div>
+                            <div><strong>{{ (leaderboard[2].avg_pace|int) }}:{{ "%02d"|format(((leaderboard[2].avg_pace % 1) * 60)|int) }}</strong> min/km</div>
                             {% endif %}
                             <div><strong>{{ leaderboard[2].days_active }}</strong> days active</div>
                         </div>
@@ -414,8 +414,7 @@
                                 <td class="name-cell"><a href="/scoring/athlete/{{ entry.athlete_id }}">{{ entry.athlete_name }}</a></td>
                                 <td class="points-cell center">{{ entry.total_points }}</td>
                                 <td class="center">
-                                    <span class="stat-value">{{ "%.1f"|format(entry.total_time) }}</span>
-                                    <span class="stat-label">hours</span>
+                                    <span class="stat-value">{{ (entry.total_time|int) }}:{{ "%02d"|format(((entry.total_time % 1) * 60)|int) }}</span>
                                 </td>
                                 <td class="center">
                                     <span class="stat-value">{{ "%.2f"|format(entry.total_distance) }}</span>
@@ -423,8 +422,7 @@
                                 </td>
                                 <td class="center">
                                     {% if entry.avg_pace %}
-                                    <span class="stat-value">{{ "%.2f"|format(entry.avg_pace) }}</span>
-                                    <span class="stat-label">min/km</span>
+                                    <span class="stat-value">{{ (entry.avg_pace|int) }}:{{ "%02d"|format(((entry.avg_pace % 1) * 60)|int) }}</span>
                                     {% else %}
                                     <span class="stat-label">-</span>
                                     {% endif %}

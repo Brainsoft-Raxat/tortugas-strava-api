@@ -352,13 +352,13 @@
                         </div>
                         <div class="stat">
                             <div class="stat-label">Время</div>
-                            <div class="stat-value">{{ "%.0f"|format(activity.moving_time_minutes) }} мин</div>
+                            <div class="stat-value">{{ (activity.moving_time_minutes / 60)|int }}:{{ "%02d"|format((activity.moving_time_minutes % 60)|int) }}</div>
                         </div>
                         <div class="stat">
                             <div class="stat-label">Темп</div>
                             <div class="stat-value">
                                 {% if activity.pace %}
-                                {{ "%.2f"|format(activity.pace) }} мин/км
+                                {{ (activity.pace|int) }}:{{ "%02d"|format(((activity.pace % 1) * 60)|int) }} мин/км
                                 {% else %}
                                 -
                                 {% endif %}
