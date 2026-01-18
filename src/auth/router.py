@@ -106,12 +106,19 @@ async def callback(
 
         if existing_user:
             logger.info("Updating existing user", athlete_id=athlete.id)
-            _ = await auth_service.update_tokens(
+            user = await auth_service.update_tokens(
                 db=db,
                 user=existing_user,
                 access_token=token_response["access_token"],
                 refresh_token=token_response["refresh_token"],
                 expires_at=token_response["expires_at"],
+            )
+            # Update profile pictures on re-authorization
+            _ = await auth_service.update_profile_pictures(
+                db=db,
+                user=user,
+                profile=athlete.profile,
+                profile_medium=athlete.profile_medium,
             )
             message = f"Welcome back, {athlete.firstname}!"
         else:
@@ -122,6 +129,8 @@ async def callback(
                 firstname=athlete.firstname,
                 lastname=athlete.lastname,
                 email=getattr(athlete, "email", None),
+                profile=athlete.profile,
+                profile_medium=athlete.profile_medium,
                 access_token=token_response["access_token"],
                 refresh_token=token_response["refresh_token"],
                 token_expires_at=token_response["expires_at"],

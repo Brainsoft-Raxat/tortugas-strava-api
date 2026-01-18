@@ -13,6 +13,7 @@ class AthleteSchema(BaseModel):
     firstname: str
     lastname: str
     profile: Optional[str] = None
+    profile_medium: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
     country: Optional[str] = None

@@ -53,6 +53,24 @@ class AuthService:
             await db.rollback()
             raise e
 
+    async def update_profile_pictures(
+        self,
+        db: AsyncSession,
+        user: User,
+        profile: Optional[str],
+        profile_medium: Optional[str],
+    ) -> User:
+        """Update user's profile pictures from Strava."""
+        try:
+            user.profile = profile
+            user.profile_medium = profile_medium
+            await db.commit()
+            await db.refresh(user)
+            return user
+        except Exception as e:
+            await db.rollback()
+            raise e
+
     async def refresh_token_if_needed(self, db: AsyncSession, user: User) -> User:
         if user.is_token_expired():
             client = Client()

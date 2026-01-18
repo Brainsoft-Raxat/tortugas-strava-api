@@ -133,6 +133,17 @@
             margin-bottom: 10px;
         }
 
+        .podium-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 16px;
+            border: 4px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            object-fit: cover;
+            background: #e2e8f0;
+        }
+
         .podium-name {
             font-size: 20px;
             font-weight: 600;
@@ -217,6 +228,18 @@
             font-weight: 600;
             color: #1a202c;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .table-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e2e8f0;
+            border: 2px solid #e2e8f0;
         }
 
         .name-cell a {
@@ -342,6 +365,9 @@
                     <!-- First Place -->
                     <div class="podium-item first">
                         <div class="podium-rank">🥇</div>
+                        {% if leaderboard[0].profile_medium %}
+                        <img src="{{ leaderboard[0].profile_medium }}" alt="{{ leaderboard[0].athlete_name }}" class="podium-avatar">
+                        {% endif %}
                         <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[0].athlete_id }}">{{ leaderboard[0].athlete_name }}</a></div>
                         <div class="podium-points">{{ leaderboard[0].total_points }}</div>
                         <div class="podium-stats">
@@ -357,6 +383,9 @@
                     <!-- Second Place -->
                     <div class="podium-item second">
                         <div class="podium-rank">🥈</div>
+                        {% if leaderboard[1].profile_medium %}
+                        <img src="{{ leaderboard[1].profile_medium }}" alt="{{ leaderboard[1].athlete_name }}" class="podium-avatar">
+                        {% endif %}
                         <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[1].athlete_id }}">{{ leaderboard[1].athlete_name }}</a></div>
                         <div class="podium-points">{{ leaderboard[1].total_points }}</div>
                         <div class="podium-stats">
@@ -372,6 +401,9 @@
                     <!-- Third Place -->
                     <div class="podium-item third">
                         <div class="podium-rank">🥉</div>
+                        {% if leaderboard[2].profile_medium %}
+                        <img src="{{ leaderboard[2].profile_medium }}" alt="{{ leaderboard[2].athlete_name }}" class="podium-avatar">
+                        {% endif %}
                         <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[2].athlete_id }}">{{ leaderboard[2].athlete_name }}</a></div>
                         <div class="podium-points">{{ leaderboard[2].total_points }}</div>
                         <div class="podium-stats">
@@ -411,7 +443,12 @@
                                     {% else %}{{ loop.index }}
                                     {% endif %}
                                 </td>
-                                <td class="name-cell"><a href="/scoring/athlete/{{ entry.athlete_id }}">{{ entry.athlete_name }}</a></td>
+                                <td class="name-cell">
+                                    {% if entry.profile_medium %}
+                                    <img src="{{ entry.profile_medium }}" alt="{{ entry.athlete_name }}" class="table-avatar">
+                                    {% endif %}
+                                    <a href="/scoring/athlete/{{ entry.athlete_id }}">{{ entry.athlete_name }}</a>
+                                </td>
                                 <td class="points-cell center">{{ entry.total_points }}</td>
                                 <td class="center">
                                     <span class="stat-value">{{ (entry.total_time|int) }}:{{ "%02d"|format(((entry.total_time % 1) * 60)|int) }}</span>

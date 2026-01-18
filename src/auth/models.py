@@ -14,6 +14,8 @@ class User(Base):
     firstname = Column(String, nullable=False)
     lastname = Column(String, nullable=False)
     email = Column(String, nullable=True)
+    profile = Column(String, nullable=True)  # Large (124x124)
+    profile_medium = Column(String, nullable=True)  # Medium (62x62)
 
     access_token = Column(String, nullable=False)
     refresh_token = Column(String, nullable=False)

@@ -148,6 +148,8 @@ async def athlete_detail(
             "request": request,
             "app_name": settings.APP_NAME,
             "athlete_name": breakdown.athlete_name,
+            "profile": breakdown.profile,
+            "profile_medium": breakdown.profile_medium,
             "week_start": breakdown.week_start,
             "week_end": breakdown.week_end,
             "total_points": breakdown.total_points,

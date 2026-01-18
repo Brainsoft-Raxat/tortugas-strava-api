@@ -120,6 +120,8 @@ class ScoringService:
                 entry = LeaderboardEntry(
                     athlete_id=athlete_id,
                     athlete_name=f"{user.firstname} {user.lastname}",
+                    profile=user.profile,
+                    profile_medium=user.profile_medium,
                     base_points=base_points,
                     consistency_bonus=consistency_bonus,
                     race_bonus=race_bonus,
@@ -231,6 +233,8 @@ class ScoringService:
                 entry = LeaderboardEntry(
                     athlete_id=athlete_id,
                     athlete_name=f"{user.firstname} {user.lastname}",
+                    profile=user.profile,
+                    profile_medium=user.profile_medium,
                     base_points=base_points,
                     consistency_bonus=consistency_bonus,
                     race_bonus=race_bonus,
@@ -349,6 +353,8 @@ class ScoringService:
         breakdown = AthleteBreakdown(
             athlete_id=athlete_id,
             athlete_name=f"{user.firstname} {user.lastname}",
+            profile=user.profile,
+            profile_medium=user.profile_medium,
             week_start=week_start.strftime("%Y-%m-%d"),
             week_end=(week_end - datetime.resolution).strftime("%Y-%m-%d"),
             daily_activities=daily_activities,

@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 
 class UserResponse(BaseModel):
@@ -7,6 +8,8 @@ class UserResponse(BaseModel):
     athlete_id: int
     firstname: str
     lastname: str
+    profile: Optional[str] = None
+    profile_medium: Optional[str] = None
     created_at: datetime
     token_expired: bool
 

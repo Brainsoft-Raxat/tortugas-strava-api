@@ -12,6 +12,10 @@ class LeaderboardEntry(BaseModel):
         Strava athlete ID
     athlete_name : str
         Full name (firstname + lastname from User table)
+    profile : str | None
+        Large profile picture URL (124x124)
+    profile_medium : str | None
+        Medium profile picture URL (62x62)
     base_points : int
         Points from total moving time (rounded)
     consistency_bonus : int
@@ -34,6 +38,8 @@ class LeaderboardEntry(BaseModel):
 
     athlete_id: int
     athlete_name: str
+    profile: str | None = None
+    profile_medium: str | None = None
     base_points: int
     consistency_bonus: int
     race_bonus: int
@@ -89,6 +95,10 @@ class AthleteBreakdown(BaseModel):
         Strava athlete ID
     athlete_name : str
         Full name (firstname + lastname from User table)
+    profile : str | None
+        Large profile picture URL (124x124)
+    profile_medium : str | None
+        Medium profile picture URL (62x62)
     week_start : str
         Start of week in YYYY-MM-DD format
     week_end : str
@@ -109,6 +119,8 @@ class AthleteBreakdown(BaseModel):
 
     athlete_id: int
     athlete_name: str
+    profile: str | None = None
+    profile_medium: str | None = None
     week_start: str
     week_end: str
     daily_activities: list[DailyActivity]

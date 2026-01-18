@@ -1,5 +1,46 @@
 # Tortugas Running Club - Scoring System
 
+## 📱 WhatsApp Explanation (Copy-Paste Ready)
+
+```
+🏃‍♂️ Tortugas Leaderboard - How It Works
+
+We're launching a NEW scoring system that's fair for everyone, regardless of pace!
+
+💯 HOW YOU EARN POINTS:
+
+1️⃣ TIME = POINTS
+Every minute you run = 1 point
+- 30 min run = 30 points
+- 60 min run = 60 points
+- Same for everyone, fast or slow!
+
+2️⃣ CONSISTENCY BONUSES (per week)
+Run on different days to unlock bonuses:
+- 3 days → +150 points
+- 4 days → +350 points
+- 5-6 days → +400 points
+
+💡 Example: Run 4x per week for 30 min each
+= (30×4) + 350 bonus = 470 points total
+
+3️⃣ RACE BONUS
+Mark your activity as "Race" in Strava:
+- +250 points per race
+- Must edit title after marking as race (Strava quirk)
+
+📊 WHY THIS SYSTEM?
+✅ Fair: Your 30 minutes = my 30 minutes
+✅ Rewards showing up consistently
+✅ Encourages sustainable training (4 days = max bonus)
+✅ No gaming by running 2x per day for more points
+
+🔄 RESET: Every Monday 00:00
+📈 TWO LEADERBOARDS: Weekly + All-Time
+
+Questions? Ask in the group! 💪
+```
+
 ## Overview
 
 A time-based scoring system that rewards consistency and effort over speed and distance. Designed to create an inclusive leaderboard where all club members - regardless of pace - are motivated to participate.
@@ -21,8 +62,8 @@ Awarded based on number of **different days** with at least one activity:
 |-------------|--------------|
 | 3 days      | 150 points   |
 | 4 days      | 350 points   |
-| 5 days      | 450 points   |
-| 6+ days     | 450 points (capped) |
+| 5 days      | 400 points   |
+| 6+ days     | 400 points (capped) |
 
 **Resets:** Every Monday at 00:00 Astana time
 
@@ -41,8 +82,8 @@ Awarded based on number of **different days** with at least one activity:
 
 ### Our Approach
 - **Time over distance:** Levels the playing field. A 5:00/km runner and 6:30/km runner both get same points for 30 minutes
-- **Consistency is king:** 4-day bonus (350pts) is worth ~60 minutes of running. Shows up > burns out
-- **Diminishing returns:** Going from 5→6 days gives zero extra points. Discourages overtraining.
+- **Consistency is king:** 4-day bonus (350pts) is worth ~6 hours of running. Shows up > burns out
+- **Diminishing returns:** Going from 4→5 days only adds 50pts more. Going from 5→6 days gives zero extra points. Discourages overtraining.
 - **Coach-aligned:** Standard training plan (M/W/F sessions + weekend long run) = 4 days = maximum reasonable bonus
 
 ## Club Training Structure
