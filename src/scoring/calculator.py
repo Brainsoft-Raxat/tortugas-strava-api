@@ -41,10 +41,11 @@ def calculate_consistency_bonus(days_active: int) -> int:
     Bonus structure:
     - 3 days: 150 points
     - 4 days: 350 points
-    - 5 days: 450 points
-    - 6+ days: 450 points (capped)
+    - 5 days: 400 points
+    - 6+ days: 400
+    1points (capped)
     """
-    BONUSES = {3: 150, 4: 350, 5: 450, 6: 450}
+    BONUSES = {3: 150, 4: 350, 5: 400, 6: 400}
     # Cap at 6 days
     capped_days = min(days_active, 6)
     return BONUSES.get(capped_days, 0)

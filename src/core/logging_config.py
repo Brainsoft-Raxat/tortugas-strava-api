@@ -11,7 +11,7 @@ import json
 import logging
 import sys
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator
+from typing import AsyncIterator
 
 from loguru import logger
 

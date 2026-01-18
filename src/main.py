@@ -1,11 +1,13 @@
+from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import src.core.cache  # noqa: F401
 import src.core.database  # noqa: F401
@@ -13,10 +15,14 @@ import src.core.logging_config  # noqa: F401 - registers logging lifespan
 from src.auth.router import router as auth_router
 from src.config import get_settings
 from src.core.logging_config import configure_logging
+from src.core.lifespan import manager
 from src.core.middleware import LoggingMiddleware, RequestContextMiddleware
 from src.core.request_context import get_request_id
-from src.core.lifespan import manager
+from src.dependencies import get_session
+from src.scoring.calculator import get_week_boundaries
+from src.scoring.router import public_router as scoring_public_router
 from src.scoring.router import router as scoring_router
+from src.scoring.service import scoring_service
 from src.sync.router import router as sync_router
 from src.webhooks.router import router as webhook_router
 
@@ -57,6 +63,7 @@ if settings.CORS_ORIGINS:
     )
 
 app.include_router(auth_router)
+app.include_router(scoring_public_router)
 app.include_router(scoring_router)
 app.include_router(sync_router)
 app.include_router(webhook_router)
@@ -99,8 +106,27 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 @app.get("/")
-async def landing_page(request: Request):
-    """Landing page with Strava authorization button"""
+async def home(request: Request, db: AsyncSession = Depends(get_session)):
+    """Main page showing leaderboard dashboard"""
+    date_obj = datetime.now()
+    week_start, week_end = get_week_boundaries(date_obj)
+    leaderboard = await scoring_service.get_weekly_leaderboard(db, date_obj)
+
+    return templates.TemplateResponse(
+        "leaderboard.html",
+        {
+            "request": request,
+            "app_name": settings.APP_NAME,
+            "leaderboard": leaderboard,
+            "week_start": week_start.strftime("%Y-%m-%d"),
+            "week_end": (week_end - datetime.resolution).strftime("%Y-%m-%d"),
+        },
+    )
+
+
+@app.get("/authorize")
+async def authorize_page(request: Request):
+    """Authorization page with Strava connect button"""
     return templates.TemplateResponse(
         "landing.html", {"request": request, "app_name": settings.APP_NAME}
     )

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ athlete_name }} - {{ app_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateX(-5px);
+        }
+
+        .back-link::before {
+            content: "←";
+            margin-right: 8px;
+            font-size: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            color: #1a202c;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header .period {
+            color: #718096;
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        .score-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .score-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .score-card .label {
+            color: #718096;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .score-card .value {
+            color: #2d3748;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .score-card.total .value {
+            color: #fc5200;
+        }
+
+        .score-card.bonus .value {
+            color: #48bb78;
+        }
+
+        .breakdown-section {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .breakdown-section h2 {
+            color: #1a202c;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .points-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .points-item {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .points-item.base {
+            border-left-color: #4299e1;
+        }
+
+        .points-item.consistency {
+            border-left-color: #48bb78;
+        }
+
+        .points-item.race {
+            border-left-color: #fc5200;
+        }
+
+        .points-item h3 {
+            color: #2d3748;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .points-item .points {
+            color: #1a202c;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .points-item .description {
+            color: #718096;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .activities-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-card {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .activity-card:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+
+        .activity-card.race {
+            border-left-color: #fc5200;
+            background: #fff5f5;
+        }
+
+        .activity-card.race:hover {
+            background: #fed7d7;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .activity-name {
+            color: #1a202c;
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .activity-date {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .activity-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            color: #2d3748;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .race-badge {
+            display: inline-block;
+            background: #fc5200;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .no-activities {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .score-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .points-breakdown {
+                grid-template-columns: 1fr;
+            }
+
+            .activity-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <a href="/" class="back-link">Назад к таблице лидеров</a>
+
+        <div class="header">
+            <h1>{{ athlete_name }}</h1>
+            <div class="period">{{ week_start }} - {{ week_end }}</div>
+
+            <div class="score-summary">
+                <div class="score-card total">
+                    <div class="label">Всего очков</div>
+                    <div class="value">{{ total_points }}</div>
+                </div>
+                <div class="score-card">
+                    <div class="label">Базовые очки</div>
+                    <div class="value">{{ base_points }}</div>
+                </div>
+                <div class="score-card bonus">
+                    <div class="label">Бонусы</div>
+                    <div class="value">+{{ consistency_bonus + race_bonus }}</div>
+                </div>
+                <div class="score-card">
+                    <div class="label">Активных дней</div>
+                    <div class="value">{{ days_active }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="breakdown-section">
+            <h2>Разбивка очков</h2>
+            <div class="points-breakdown">
+                <div class="points-item base">
+                    <h3>Базовые очки</h3>
+                    <div class="points">{{ base_points }}</div>
+                    <div class="description">1 очко за каждую минуту бега</div>
+                </div>
+                <div class="points-item consistency">
+                    <h3>Бонус за постоянство</h3>
+                    <div class="points">+{{ consistency_bonus }}</div>
+                    <div class="description">
+                        {% if days_active >= 3 %}
+                        За {{ days_active }} дней активности
+                        {% else %}
+                        Бегайте 3+ дня для бонуса
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="points-item race">
+                    <h3>Бонус за гонки</h3>
+                    <div class="points">+{{ race_bonus }}</div>
+                    <div class="description">
+                        {% if race_bonus > 0 %}
+                        250 очков за каждую гонку
+                        {% else %}
+                        Нет гонок на этой неделе
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="breakdown-section">
+            <h2>Активности ({{ activities|length }})</h2>
+            {% if activities and activities|length > 0 %}
+            <div class="activities-list">
+                {% for activity in activities %}
+                <div class="activity-card {% if activity.is_race %}race{% endif %}">
+                    <div class="activity-header">
+                        <div class="activity-name">
+                            {{ activity.name }}
+                            {% if activity.is_race %}
+                            <span class="race-badge">ГОНКА</span>
+                            {% endif %}
+                        </div>
+                        <div class="activity-date">{{ activity.date }}</div>
+                    </div>
+                    <div class="activity-stats">
+                        <div class="stat">
+                            <div class="stat-label">Расстояние</div>
+                            <div class="stat-value">{{ "%.2f"|format(activity.distance_km) }} км</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Время</div>
+                            <div class="stat-value">{{ "%.0f"|format(activity.moving_time_minutes) }} мин</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Темп</div>
+                            <div class="stat-value">
+                                {% if activity.pace %}
+                                {{ "%.2f"|format(activity.pace) }} мин/км
+                                {% else %}
+                                -
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Очки</div>
+                            <div class="stat-value">{{ activity.points }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-activities">
+                Нет активностей за эту неделю
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

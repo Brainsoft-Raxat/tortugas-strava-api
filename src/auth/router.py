@@ -68,6 +68,14 @@ async def callback(code: str, db: AsyncSession = Depends(get_session)):
         clubs = await async_client.get_athlete_clubs()
         club_ids = [club.id for club in clubs]
 
+        # Debug: Log detailed club information
+        logger.info(
+            "Clubs returned by Strava API",
+            athlete_id=athlete.id,
+            club_count=len(clubs),
+            clubs_data=[{"id": club.id, "name": club.name} for club in clubs],
+        )
+
         if settings.STRAVA_CLUB_ID not in club_ids:
             # Not a club member - deauthorize and reject
             logger.warning(

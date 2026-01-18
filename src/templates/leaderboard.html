@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Leaderboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header .subtitle {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .auth-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #fc5200;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(252, 82, 0, 0.3);
+        }
+
+        .auth-button:hover {
+            background: #d74500;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(252, 82, 0, 0.4);
+        }
+
+        .auth-button:active {
+            transform: translateY(0);
+        }
+
+        .week-info {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .leaderboard-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .podium {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 40px;
+            background: linear-gradient(to bottom, #f7fafc 0%, #ffffff 100%);
+        }
+
+        .podium-item {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 12px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .podium-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .podium-item.first {
+            order: 2;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            box-shadow: 0 8px 24px rgba(255, 215, 0, 0.4);
+        }
+
+        .podium-item.second {
+            order: 1;
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+            box-shadow: 0 8px 24px rgba(192, 192, 192, 0.4);
+        }
+
+        .podium-item.third {
+            order: 3;
+            background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 100%);
+            box-shadow: 0 8px 24px rgba(205, 127, 50, 0.4);
+        }
+
+        .podium-rank {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .podium-name {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a202c;
+        }
+
+        .podium-points {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fc5200;
+            margin-bottom: 16px;
+        }
+
+        .podium-stats {
+            font-size: 14px;
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .podium-stats div {
+            margin: 4px 0;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #2d3748;
+            color: white;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        th.center {
+            text-align: center;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        td {
+            padding: 20px 16px;
+            font-size: 15px;
+        }
+
+        td.center {
+            text-align: center;
+        }
+
+        .rank-cell {
+            font-weight: 700;
+            font-size: 20px;
+            color: #2d3748;
+            width: 60px;
+        }
+
+        .name-cell {
+            font-weight: 600;
+            color: #1a202c;
+            font-size: 16px;
+        }
+
+        .name-cell a {
+            color: #1a202c;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .name-cell a:hover {
+            color: #667eea;
+            text-decoration: underline;
+        }
+
+        .podium-name a {
+            color: #1a202c;
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        .podium-name a:hover {
+            opacity: 0.8;
+        }
+
+        .points-cell {
+            font-weight: 700;
+            color: #fc5200;
+            font-size: 18px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-race {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .badge-consistency {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .podium {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 20px;
+            }
+
+            .podium-item.first,
+            .podium-item.second,
+            .podium-item.third {
+                order: 0;
+            }
+
+            .header h1 {
+                font-size: 32px;
+            }
+
+            .auth-button {
+                position: static;
+                margin-top: 20px;
+                display: block;
+                width: 200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 12px 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="/authorize" class="auth-button">Connect Strava</a>
+            <h1>🏆 {{ app_name }}</h1>
+            <div class="subtitle">Weekly Leaderboard</div>
+        </div>
+
+        {% if week_start and week_end %}
+        <div class="week-info">
+            📅 {{ week_start }} - {{ week_end }}
+        </div>
+        {% endif %}
+
+        <div class="leaderboard-card">
+            {% if leaderboard and leaderboard|length > 0 %}
+                <!-- Top 3 Podium -->
+                {% if leaderboard|length >= 3 %}
+                <div class="podium">
+                    <!-- First Place -->
+                    <div class="podium-item first">
+                        <div class="podium-rank">🥇</div>
+                        <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[0].athlete_id }}">{{ leaderboard[0].athlete_name }}</a></div>
+                        <div class="podium-points">{{ leaderboard[0].total_points }}</div>
+                        <div class="podium-stats">
+                            <div><strong>{{ "%.2f"|format(leaderboard[0].total_time) }}</strong> hours</div>
+                            <div><strong>{{ "%.2f"|format(leaderboard[0].total_distance) }}</strong> km</div>
+                            {% if leaderboard[0].avg_pace %}
+                            <div><strong>{{ "%.2f"|format(leaderboard[0].avg_pace) }}</strong> min/km</div>
+                            {% endif %}
+                            <div><strong>{{ leaderboard[0].days_active }}</strong> days active</div>
+                        </div>
+                    </div>
+
+                    <!-- Second Place -->
+                    <div class="podium-item second">
+                        <div class="podium-rank">🥈</div>
+                        <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[1].athlete_id }}">{{ leaderboard[1].athlete_name }}</a></div>
+                        <div class="podium-points">{{ leaderboard[1].total_points }}</div>
+                        <div class="podium-stats">
+                            <div><strong>{{ "%.2f"|format(leaderboard[1].total_time) }}</strong> hours</div>
+                            <div><strong>{{ "%.2f"|format(leaderboard[1].total_distance) }}</strong> km</div>
+                            {% if leaderboard[1].avg_pace %}
+                            <div><strong>{{ "%.2f"|format(leaderboard[1].avg_pace) }}</strong> min/km</div>
+                            {% endif %}
+                            <div><strong>{{ leaderboard[1].days_active }}</strong> days active</div>
+                        </div>
+                    </div>
+
+                    <!-- Third Place -->
+                    <div class="podium-item third">
+                        <div class="podium-rank">🥉</div>
+                        <div class="podium-name"><a href="/scoring/athlete/{{ leaderboard[2].athlete_id }}">{{ leaderboard[2].athlete_name }}</a></div>
+                        <div class="podium-points">{{ leaderboard[2].total_points }}</div>
+                        <div class="podium-stats">
+                            <div><strong>{{ "%.2f"|format(leaderboard[2].total_time) }}</strong> hours</div>
+                            <div><strong>{{ "%.2f"|format(leaderboard[2].total_distance) }}</strong> km</div>
+                            {% if leaderboard[2].avg_pace %}
+                            <div><strong>{{ "%.2f"|format(leaderboard[2].avg_pace) }}</strong> min/km</div>
+                            {% endif %}
+                            <div><strong>{{ leaderboard[2].days_active }}</strong> days active</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Full Leaderboard Table -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="center">Rank</th>
+                                <th>Athlete</th>
+                                <th class="center">Points</th>
+                                <th class="center">Time</th>
+                                <th class="center">Distance</th>
+                                <th class="center">Avg Pace</th>
+                                <th class="center">Days</th>
+                                <th class="center">Bonuses</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in leaderboard %}
+                            <tr>
+                                <td class="rank-cell center">
+                                    {% if loop.index == 1 %}🥇
+                                    {% elif loop.index == 2 %}🥈
+                                    {% elif loop.index == 3 %}🥉
+                                    {% else %}{{ loop.index }}
+                                    {% endif %}
+                                </td>
+                                <td class="name-cell"><a href="/scoring/athlete/{{ entry.athlete_id }}">{{ entry.athlete_name }}</a></td>
+                                <td class="points-cell center">{{ entry.total_points }}</td>
+                                <td class="center">
+                                    <span class="stat-value">{{ "%.1f"|format(entry.total_time) }}</span>
+                                    <span class="stat-label">hours</span>
+                                </td>
+                                <td class="center">
+                                    <span class="stat-value">{{ "%.2f"|format(entry.total_distance) }}</span>
+                                    <span class="stat-label">km</span>
+                                </td>
+                                <td class="center">
+                                    {% if entry.avg_pace %}
+                                    <span class="stat-value">{{ "%.2f"|format(entry.avg_pace) }}</span>
+                                    <span class="stat-label">min/km</span>
+                                    {% else %}
+                                    <span class="stat-label">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="center">
+                                    <span class="stat-value">{{ entry.days_active }}</span>
+                                </td>
+                                <td class="center">
+                                    {% if entry.consistency_bonus > 0 %}
+                                    <span class="badge badge-consistency">+{{ entry.consistency_bonus }}</span>
+                                    {% endif %}
+                                    {% if entry.race_bonus > 0 %}
+                                    <span class="badge badge-race">+{{ entry.race_bonus }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-data">
+                    No activities recorded for this week yet. Get running!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

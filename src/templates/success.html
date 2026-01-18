@@ -96,6 +96,45 @@
             font-size: 14px;
             color: #718096;
         }
+
+        .redirect-info {
+            margin-top: 32px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .redirect-info .countdown {
+            font-size: 48px;
+            font-weight: 700;
+            color: #48bb78;
+            margin: 16px 0;
+        }
+
+        .redirect-info p {
+            color: #4a5568;
+            font-size: 16px;
+        }
+
+        .home-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+            margin-top: 16px;
+        }
+
+        .home-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -115,9 +154,30 @@
         </div>
 
         <p class="note">
-            Теперь вы можете закрыть это окно и вернуться в чат.
+            Ваши активности будут автоматически синхронизироваться.
         </p>
+
+        <div class="redirect-info">
+            <p>Перенаправление на главную страницу через</p>
+            <div class="countdown" id="countdown">5</div>
+            <a href="/" class="home-btn">Перейти сейчас</a>
+        </div>
     </div>
+
+    <script>
+        let seconds = 5;
+        const countdownElement = document.getElementById('countdown');
+
+        const timer = setInterval(() => {
+            seconds--;
+            countdownElement.textContent = seconds;
+
+            if (seconds <= 0) {
+                clearInterval(timer);
+                window.location.href = '/';
+            }
+        }, 1000);
+    </script>
 </body>
 
 </html>

@@ -24,6 +24,12 @@ class LeaderboardEntry(BaseModel):
         Number of unique days with activities
     race_count : int
         Number of race activities
+    total_time : float
+        Total moving time in hours
+    total_distance : float
+        Total distance in kilometers
+    avg_pace : float | None
+        Average pace in minutes per kilometer (None if no distance)
     """
 
     athlete_id: int
@@ -34,6 +40,9 @@ class LeaderboardEntry(BaseModel):
     total_points: int
     days_active: int
     race_count: int
+    total_time: float
+    total_distance: float
+    avg_pace: float | None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -51,6 +60,10 @@ class DailyActivity(BaseModel):
         Activity name/title
     moving_time_minutes : float
         Moving time in minutes (exact)
+    distance_km : float
+        Distance in kilometers
+    pace : float | None
+        Pace in minutes per kilometer (None if no distance)
     points : int
         Base points earned from this activity (rounded)
     is_race : bool
@@ -61,6 +74,8 @@ class DailyActivity(BaseModel):
     activity_id: int
     name: str
     moving_time_minutes: float
+    distance_km: float
+    pace: float | None
     points: int
     is_race: bool
 

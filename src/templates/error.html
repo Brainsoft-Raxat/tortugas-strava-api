@@ -147,6 +147,26 @@
             background: #5568d3;
             transform: translateY(-2px);
         }
+
+        .redirect-info {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .redirect-info .countdown {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 8px 0;
+            display: inline-block;
+        }
+
+        .redirect-info p {
+            color: #4a5568;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -176,7 +196,26 @@
         </div>
 
         <a href="/" class="back-btn">Вернуться на главную</a>
+
+        <div class="redirect-info">
+            <p>Автоматический возврат на главную через <span class="countdown" id="countdown">10</span> секунд</p>
+        </div>
     </div>
+
+    <script>
+        let seconds = 10;
+        const countdownElement = document.getElementById('countdown');
+
+        const timer = setInterval(() => {
+            seconds--;
+            countdownElement.textContent = seconds;
+
+            if (seconds <= 0) {
+                clearInterval(timer);
+                window.location.href = '/';
+            }
+        }, 1000);
+    </script>
 </body>
 
 </html>

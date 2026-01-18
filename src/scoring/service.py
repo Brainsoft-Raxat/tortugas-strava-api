@@ -86,6 +86,17 @@ class ScoringService:
                 calculate_base_points(activity.moving_time) for activity in athlete_acts
             )
 
+            # Calculate total time (in hours) and distance (in km)
+            total_time_seconds = sum(activity.moving_time for activity in athlete_acts)
+            total_time = total_time_seconds / 3600  # Convert to hours
+            total_distance_meters = sum(activity.distance for activity in athlete_acts)
+            total_distance = total_distance_meters / 1000  # Convert to km
+
+            # Calculate average pace (min/km)
+            avg_pace = None
+            if total_distance > 0:
+                avg_pace = (total_time_seconds / 60) / total_distance  # min/km
+
             # Count unique days
             unique_dates = {
                 activity.start_date_local.date() for activity in athlete_acts
@@ -115,6 +126,9 @@ class ScoringService:
                     total_points=total_points,
                     days_active=days_active,
                     race_count=race_count,
+                    total_time=total_time,
+                    total_distance=total_distance,
+                    avg_pace=avg_pace,
                 )
                 leaderboard.append(entry)
 
@@ -183,6 +197,17 @@ class ScoringService:
                 calculate_base_points(activity.moving_time) for activity in athlete_acts
             )
 
+            # Calculate total time (in hours) and distance (in km)
+            total_time_seconds = sum(activity.moving_time for activity in athlete_acts)
+            total_time = total_time_seconds / 3600  # Convert to hours
+            total_distance_meters = sum(activity.distance for activity in athlete_acts)
+            total_distance = total_distance_meters / 1000  # Convert to km
+
+            # Calculate average pace (min/km)
+            avg_pace = None
+            if total_distance > 0:
+                avg_pace = (total_time_seconds / 60) / total_distance  # min/km
+
             # Count unique days
             unique_dates = {
                 activity.start_date_local.date() for activity in athlete_acts
@@ -212,6 +237,9 @@ class ScoringService:
                     total_points=total_points,
                     days_active=days_active,
                     race_count=race_count,
+                    total_time=total_time,
+                    total_distance=total_distance,
+                    avg_pace=avg_pace,
                 )
                 leaderboard.append(entry)
 
@@ -276,6 +304,13 @@ class ScoringService:
         daily_activities: list[DailyActivity] = []
         for activity in activities:
             moving_time_minutes = activity.moving_time / 60
+            distance_km = activity.distance / 1000  # Convert meters to km
+
+            # Calculate pace (min/km)
+            pace = None
+            if distance_km > 0:
+                pace = moving_time_minutes / distance_km
+
             points = calculate_base_points(activity.moving_time)
             is_race = activity.workout_type == 1
 
@@ -284,6 +319,8 @@ class ScoringService:
                 activity_id=activity.id,
                 name=activity.name,
                 moving_time_minutes=moving_time_minutes,
+                distance_km=distance_km,
+                pace=pace,
                 points=points,
                 is_race=is_race,
             )
