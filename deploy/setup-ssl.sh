@@ -31,7 +31,9 @@ echo "Setting up SSL certificates for $DOMAIN..."
 echo "Step 1: Obtaining SSL certificate from Let's Encrypt..."
 
 # Get certificate (nginx is already running with HTTP-only config)
-docker compose -f docker-compose.prod.yml run --rm certbot certonly \
+# Override entrypoint because the certbot container has a custom entrypoint for auto-renewal
+docker compose -f docker-compose.prod.yml run --rm --entrypoint certbot certbot \
+    certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
     --email $SSL_EMAIL \
