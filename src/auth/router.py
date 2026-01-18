@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 from stravalib import Client
 
@@ -23,21 +24,28 @@ templates = Jinja2Templates(directory=str(templates_dir))
 @router.get("/authorize")
 def authorize():
     """Redirect to Strava for authorization"""
+    logger.info("Authorization flow initiated")
+
     client = Client()
     url = client.authorization_url(
         client_id=settings.STRAVA_CLIENT_ID,
         redirect_uri=settings.STRAVA_REDIRECT_URI,
         scope=["activity:read_all", "profile:read_all"],
     )
+
+    logger.debug("Generated authorization URL", url=url)
     return RedirectResponse(url=url)
 
 
 @router.get("/callback")
 async def callback(code: str, db: AsyncSession = Depends(get_session)):
     """Handle OAuth callback with club membership validation"""
+    logger.info("OAuth callback received", has_code=bool(code))
+
     client = Client()
 
     try:
+        logger.debug("Exchanging authorization code for token")
         token_response = client.exchange_code_for_token(
             client_id=settings.STRAVA_CLIENT_ID,
             client_secret=settings.STRAVA_CLIENT_SECRET,
@@ -49,13 +57,25 @@ async def callback(code: str, db: AsyncSession = Depends(get_session)):
 
         # Get athlete info
         athlete = await async_client.get_athlete()
+        logger.info(
+            "Retrieved athlete info",
+            athlete_id=athlete.id,
+            name=f"{athlete.firstname} {athlete.lastname}",
+        )
 
         # Validate club membership
+        logger.debug("Checking club membership", athlete_id=athlete.id)
         clubs = await async_client.get_athlete_clubs()
         club_ids = [club.id for club in clubs]
 
         if settings.STRAVA_CLUB_ID not in club_ids:
             # Not a club member - deauthorize and reject
+            logger.warning(
+                "Club membership validation failed",
+                athlete_id=athlete.id,
+                clubs=club_ids,
+                required_club=settings.STRAVA_CLUB_ID,
+            )
             await async_client.deauthorize()
             return RedirectResponse(
                 url=(
@@ -65,10 +85,13 @@ async def callback(code: str, db: AsyncSession = Depends(get_session)):
                 status_code=303,
             )
 
+        logger.info("Club membership validated", athlete_id=athlete.id)
+
         # Club member - proceed with user creation/update
         existing_user = await auth_service.get_user_by_athlete_id(db, athlete.id)
 
         if existing_user:
+            logger.info("Updating existing user", athlete_id=athlete.id)
             _ = await auth_service.update_tokens(
                 db=db,
                 user=existing_user,
@@ -78,6 +101,7 @@ async def callback(code: str, db: AsyncSession = Depends(get_session)):
             )
             message = f"Welcome back, {athlete.firstname}!"
         else:
+            logger.info("Creating new user", athlete_id=athlete.id)
             _ = await auth_service.create_user(
                 db=db,
                 athlete_id=athlete.id,
@@ -90,6 +114,12 @@ async def callback(code: str, db: AsyncSession = Depends(get_session)):
             )
             message = f"Welcome to Tortugas, {athlete.firstname}!"
 
+        logger.info(
+            "OAuth flow completed successfully",
+            athlete_id=athlete.id,
+            is_new_user=not bool(existing_user),
+        )
+
         # Redirect to success page
         return RedirectResponse(
             url=f"/auth/success?message={message}&athlete_id={athlete.id}",
@@ -98,6 +128,12 @@ async def callback(code: str, db: AsyncSession = Depends(get_session)):
 
     except Exception as e:
         # Handle any unexpected errors
+        logger.error(
+            "OAuth callback failed",
+            error=str(e),
+            error_type=type(e).__name__,
+            exc_info=True,
+        )
         return RedirectResponse(
             url=f"/auth/error?message=Authorization+failed&error={str(e)}",
             status_code=303,
@@ -154,9 +190,18 @@ async def deauthorize_user(
     This marks the user as unauthorized and clears their Strava tokens.
     The user will need to re-authorize to access the application again.
     """
+    logger.info("Deauthorization requested", athlete_id=athlete_id)
+
     user = await auth_service.deauthorize_user(db, athlete_id)
     if not user:
+        logger.warning("Deauthorization failed - user not found", athlete_id=athlete_id)
         raise HTTPException(status_code=404, detail="User not found")
+
+    logger.info(
+        "User deauthorized successfully",
+        athlete_id=athlete_id,
+        name=f"{user.firstname} {user.lastname}",
+    )
 
     return {
         "status": "success",

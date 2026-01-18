@@ -1,10 +1,11 @@
 """Async Strava API client."""
 
-import logging
 from typing import Any, Optional
 
 import httpx
+from loguru import logger
 
+from src.core.request_context import get_request_id
 from src.strava.exceptions import (
     AccessUnauthorized,
     ObjectNotFound,
@@ -18,8 +19,6 @@ from src.strava.schemas import (
     ClubSchema,
     WebhookSubscriptionSchema,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class AsyncStravaClient:
@@ -91,7 +90,12 @@ class AsyncStravaClient:
             params = {}
         params["access_token"] = self.access_token
 
-        logger.debug(f"{method} {url} with params {params}")
+        logger.debug(
+            "Strava API request",
+            method=method,
+            endpoint=endpoint,
+            request_id=get_request_id(),
+        )
 
         async with httpx.AsyncClient() as client:
             response = await client.request(

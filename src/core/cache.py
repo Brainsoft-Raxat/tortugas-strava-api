@@ -4,6 +4,8 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
+from loguru import logger
+
 from src.config import get_settings
 from src.core.lifespan import manager
 
@@ -45,15 +47,15 @@ async def cache_lifespan() -> AsyncIterator[dict]:
     Manage cache connection lifecycle.
     Creates Redis connection on startup, closes on shutdown.
     """
-    print("🔵 Starting cache connection...")
+    logger.info("Initializing cache connection")
 
     redis = FakeRedis(url=settings.REDIS_URL)
     await redis.connect()
 
-    print("✅ Cache connected")
+    logger.info("Cache connection established")
 
     yield {"redis": redis}
 
-    print("🔴 Closing cache connection...")
+    logger.info("Closing cache connection")
     await redis.close()
-    print("✅ Cache disconnected")
+    logger.info("Cache disconnected")

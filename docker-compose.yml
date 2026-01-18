@@ -3,18 +3,41 @@ services:
     image: postgres:16-alpine
     container_name: strava-platform-db
     environment:
-      POSTGRES_USER: strava
-      POSTGRES_PASSWORD: strava_dev_password
-      POSTGRES_DB: strava_platform
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U strava"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: strava-platform-app
+    ports:
+      - "8000:8000"
+    environment:
+      # Override DATABASE_URL to use postgres service name instead of localhost
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - STRAVA_CLIENT_ID=${STRAVA_CLIENT_ID}
+      - STRAVA_CLIENT_SECRET=${STRAVA_CLIENT_SECRET}
+      - STRAVA_REDIRECT_URI=${STRAVA_REDIRECT_URI}
+      - STRAVA_VERIFY_TOKEN=${STRAVA_VERIFY_TOKEN}
+      - STRAVA_CLUB_ID=${STRAVA_CLUB_ID}
+      - ADMIN_API_KEY=${ADMIN_API_KEY}
+      - WEBHOOK_BASE_URL=${WEBHOOK_BASE_URL}
+      - ENVIRONMENT=${ENVIRONMENT:-local}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:

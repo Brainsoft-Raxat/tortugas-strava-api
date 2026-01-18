@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
@@ -24,7 +25,7 @@ async def database_lifespan() -> AsyncIterator[dict]:
     Manage database connection lifecycle.
     Creates connection pool on startup, disposes on shutdown.
     """
-    print("🔵 Starting database connection...")
+    logger.info("Initializing database connection pool")
 
     # Startup - create engine and session maker
     engine: AsyncEngine = create_async_engine(
@@ -32,7 +33,7 @@ async def database_lifespan() -> AsyncIterator[dict]:
         pool_pre_ping=True,
         pool_size=10,
         max_overflow=20,
-        echo=settings.ENVIRONMENT == "local",
+        # echo=settings.ENVIRONMENT == "local",
     )
 
     session_maker = async_sessionmaker(
@@ -40,12 +41,12 @@ async def database_lifespan() -> AsyncIterator[dict]:
         expire_on_commit=False,
     )
 
-    print("Database connected")
+    logger.info("Database connection pool ready")
 
     # Yield state to be available in request.state
     yield {"session_maker": session_maker}
 
     # Shutdown - cleanup
-    print("Closing database connection...")
+    logger.info("Shutting down database connection pool")
     await engine.dispose()
-    print("Database disconnected")
+    logger.info("Database disconnected")

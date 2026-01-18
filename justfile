@@ -27,6 +27,12 @@ lint:
 up:
   docker-compose up -d
 
+up-db:                                                                                                                                                                         
+    docker-compose up -d postgres
+
+down:
+  docker-compose down
+
 kill *args:
   docker-compose kill {{args}}
 

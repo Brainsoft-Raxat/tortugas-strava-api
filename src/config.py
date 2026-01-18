@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Tortugas"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
     DEBUG: bool = False
+    LOG_LEVEL: str = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
     # DB
     DATABASE_URL: str
@@ -42,6 +43,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # Ignore extra fields (like POSTGRES_* used by docker-compose)
 
 
 @lru_cache()
