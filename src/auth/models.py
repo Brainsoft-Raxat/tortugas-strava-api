@@ -32,3 +32,13 @@ class User(Base):
 
     def is_token_expired(self) -> bool:
         return time.time() > self.token_expires_at
+
+    @property
+    def athlete_id(self) -> int:
+        """Alias for id to match Strava terminology"""
+        return self.id
+
+    @property
+    def token_expired(self) -> bool:
+        """Property for Pydantic serialization"""
+        return self.is_token_expired()
