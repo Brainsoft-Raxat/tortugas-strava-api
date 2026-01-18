@@ -1,6 +1,7 @@
+from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from loguru import logger
@@ -12,6 +13,7 @@ from src.auth.service import auth_service
 from src.config import get_settings
 from src.dependencies import get_session, verify_admin_api_key
 from src.strava.client import AsyncStravaClient
+from src.sync.service import sync_service
 
 settings = get_settings()
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -38,7 +40,11 @@ def authorize():
 
 
 @router.get("/callback")
-async def callback(code: str, db: AsyncSession = Depends(get_session)):
+async def callback(
+    code: str,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_session),
+):
     """Handle OAuth callback with club membership validation"""
     logger.info("OAuth callback received", has_code=bool(code))
 
@@ -121,6 +127,19 @@ async def callback(code: str, db: AsyncSession = Depends(get_session)):
                 token_expires_at=token_response["expires_at"],
             )
             message = f"Welcome to Tortugas, {athlete.firstname}!"
+
+            # Backfill activities from 2026-01-01 for new users
+            logger.info(
+                "Triggering background sync for new user",
+                athlete_id=athlete.id,
+                after="2026-01-01",
+            )
+            background_tasks.add_task(
+                sync_service.sync_athlete_activities,
+                db=db,
+                athlete_id=athlete.id,
+                after=datetime(2026, 1, 1),
+            )
 
         logger.info(
             "OAuth flow completed successfully",
