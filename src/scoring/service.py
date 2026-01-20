@@ -367,6 +367,121 @@ class ScoringService:
 
         return breakdown
 
+    async def get_athlete_all_time_stats(
+        self, db: AsyncSession, athlete_id: int, page: int = 1, page_size: int = 20
+    ) -> dict:
+        """Get all-time stats and paginated activities for an athlete.
+
+        Parameters
+        ----------
+        db : AsyncSession
+            Database session
+        athlete_id : int
+            Strava athlete ID
+        page : int
+            Page number (1-indexed)
+        page_size : int
+            Number of activities per page
+
+        Returns
+        -------
+        dict
+            Dictionary containing:
+            - total_points: All-time total points
+            - base_points: All-time base points
+            - consistency_bonus: All-time consistency bonus
+            - race_bonus: All-time race bonus
+            - days_active: Total unique days active
+            - activities: List of DailyActivity for current page
+            - total_count: Total number of activities
+            - total_pages: Total number of pages
+
+        Raises
+        ------
+        ValueError
+            If athlete not found in users table
+        """
+        from math import ceil
+
+        # Get athlete/user info
+        user_result = await db.execute(select(User).filter(User.id == athlete_id))
+        user = user_result.scalar_one_or_none()
+
+        if user is None:
+            raise ValueError(f"Athlete {athlete_id} not found")
+
+        # Query all Run activities for this athlete (for stats calculation)
+        result = await db.execute(
+            select(Activity)
+            .filter(
+                Activity.athlete_id == athlete_id,
+                Activity.type == "Run",
+            )
+            .order_by(Activity.start_date_local.desc())
+        )
+        all_activities = list(result.scalars().all())
+
+        # Calculate all-time stats
+        base_points = sum(
+            calculate_base_points(activity.moving_time) for activity in all_activities
+        )
+
+        # Count unique days
+        unique_dates = {activity.start_date_local.date() for activity in all_activities}
+        days_active = len(unique_dates)
+
+        # Count races
+        race_count = sum(1 for activity in all_activities if activity.workout_type == 1)
+
+        # Calculate bonuses (based on all-time data)
+        consistency_bonus = calculate_consistency_bonus(days_active)
+        race_bonus = calculate_race_bonus(race_count)
+        total_points = base_points + consistency_bonus + race_bonus
+
+        # Pagination
+        total_count = len(all_activities)
+        total_pages = ceil(total_count / page_size) if total_count > 0 else 1
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_activities = all_activities[start_idx:end_idx]
+
+        # Build daily activities list for current page
+        daily_activities: list[DailyActivity] = []
+        for activity in paginated_activities:
+            moving_time_minutes = activity.moving_time / 60
+            distance_km = activity.distance / 1000
+
+            # Calculate pace
+            pace = None
+            if distance_km > 0:
+                pace = moving_time_minutes / distance_km
+
+            points = calculate_base_points(activity.moving_time)
+            is_race = activity.workout_type == 1
+
+            daily_activity = DailyActivity(
+                date=activity.start_date_local.strftime("%Y-%m-%d %H:%M"),
+                activity_id=activity.id,
+                name=activity.name,
+                moving_time_minutes=moving_time_minutes,
+                distance_km=distance_km,
+                pace=pace,
+                points=points,
+                is_race=is_race,
+            )
+            daily_activities.append(daily_activity)
+
+        return {
+            "total_points": total_points,
+            "base_points": base_points,
+            "consistency_bonus": consistency_bonus,
+            "race_bonus": race_bonus,
+            "days_active": days_active,
+            "activities": daily_activities,
+            "total_count": total_count,
+            "total_pages": total_pages,
+        }
+
 
 # Singleton instance
 scoring_service = ScoringService()

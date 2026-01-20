@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import get_settings
 from src.dependencies import get_session, verify_admin_api_key
-from src.scoring.calculator import get_week_boundaries
+from src.scoring.calculator import get_period_boundaries, get_week_boundaries
 from src.scoring.schemas import AthleteBreakdown, LeaderboardEntry
 from src.scoring.service import scoring_service
 
@@ -34,9 +34,17 @@ router = APIRouter(
 @public_router.get("/dashboard", include_in_schema=False)
 async def leaderboard_dashboard(
     request: Request,
-    date: str | None = Query(
+    period: str = Query(
+        "this_week",
+        description="Period to display: this_week, last_week, this_month, last_month, this_year, last_year, custom",
+    ),
+    start_date: str | None = Query(
         None,
-        description="Date in YYYY-MM-DD format. If not provided, uses current week.",
+        description="Start date for custom period (YYYY-MM-DD format). Required if period=custom.",
+    ),
+    end_date: str | None = Query(
+        None,
+        description="End date for custom period (YYYY-MM-DD format). Required if period=custom.",
     ),
     db: AsyncSession = Depends(get_session),
 ):
@@ -46,9 +54,12 @@ async def leaderboard_dashboard(
     ----------
     request : Request
         FastAPI request object (for template rendering)
-    date : str | None
-        Date in YYYY-MM-DD format within the week to query.
-        If None, uses current date.
+    period : str
+        Time period to display: this_week, last_week, this_month, last_month, this_year, last_year, custom
+    start_date : str | None
+        Start date for custom period (YYYY-MM-DD format)
+    end_date : str | None
+        End date for custom period (YYYY-MM-DD format)
     db : AsyncSession
         Database session (injected)
 
@@ -59,26 +70,34 @@ async def leaderboard_dashboard(
     """
     settings = get_settings()
 
-    # Parse date if provided
-    date_obj = None
-    if date is not None:
+    # Parse custom dates if provided
+    custom_start = None
+    custom_end = None
+    if period == "custom":
+        if not start_date or not end_date:
+            raise HTTPException(
+                status_code=400,
+                detail="start_date and end_date are required for custom period",
+            )
         try:
-            date_obj = datetime.strptime(date, "%Y-%m-%d")
+            custom_start = datetime.strptime(start_date, "%Y-%m-%d")
+            custom_end = datetime.strptime(end_date, "%Y-%m-%d")
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid date format: {date}. Expected YYYY-MM-DD",
+                detail="Invalid date format. Expected YYYY-MM-DD",
             )
 
-    # If no date provided, use current date
-    if date_obj is None:
-        date_obj = datetime.now()
+    # Get period boundaries
+    try:
+        period_start, period_end, period_label = get_period_boundaries(
+            period, custom_start, custom_end
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    # Get week boundaries for display
-    week_start, week_end = get_week_boundaries(date_obj)
-
-    # Get leaderboard
-    leaderboard = await scoring_service.get_weekly_leaderboard(db, date_obj)
+    # Get leaderboard using range query for all periods
+    leaderboard = await scoring_service.get_range_leaderboard(db, period_start, period_end)
 
     return templates.TemplateResponse(
         "leaderboard.html",
@@ -86,8 +105,10 @@ async def leaderboard_dashboard(
             "request": request,
             "app_name": settings.APP_NAME,
             "leaderboard": leaderboard,
-            "week_start": week_start.strftime("%Y-%m-%d"),
-            "week_end": (week_end - datetime.resolution).strftime("%Y-%m-%d"),
+            "period": period,
+            "period_label": period_label,
+            "period_start": period_start.strftime("%Y-%m-%d"),
+            "period_end": (period_end - datetime.resolution).strftime("%Y-%m-%d"),
         },
     )
 
@@ -96,13 +117,11 @@ async def leaderboard_dashboard(
 async def athlete_detail(
     request: Request,
     athlete_id: int,
-    date: str | None = Query(
-        None,
-        description="Date in YYYY-MM-DD format. If not provided, uses current week.",
-    ),
+    page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    page_size: int = Query(20, ge=1, le=100, description="Activities per page"),
     db: AsyncSession = Depends(get_session),
 ):
-    """Display detailed score breakdown for an athlete (public, no auth required).
+    """Display detailed athlete page with all activities (public, no auth required).
 
     Parameters
     ----------
@@ -110,9 +129,10 @@ async def athlete_detail(
         FastAPI request object (for template rendering)
     athlete_id : int
         Strava athlete ID
-    date : str | None
-        Date in YYYY-MM-DD format within the week to query.
-        If None, uses current date.
+    page : int
+        Page number (1-indexed)
+    page_size : int
+        Number of activities per page (1-100)
     db : AsyncSession
         Database session (injected)
 
@@ -123,21 +143,18 @@ async def athlete_detail(
     """
     settings = get_settings()
 
-    # Parse date if provided
-    date_obj = None
-    if date is not None:
-        try:
-            date_obj = datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid date format: {date}. Expected YYYY-MM-DD",
-            )
-
-    # Get athlete breakdown
+    # Get this week's breakdown
     try:
-        breakdown = await scoring_service.get_athlete_breakdown(
-            db, athlete_id, date_obj
+        weekly_breakdown = await scoring_service.get_athlete_breakdown(
+            db, athlete_id, None
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    # Get all-time stats and paginated activities
+    try:
+        all_time_stats = await scoring_service.get_athlete_all_time_stats(
+            db, athlete_id, page, page_size
         )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -147,17 +164,30 @@ async def athlete_detail(
         {
             "request": request,
             "app_name": settings.APP_NAME,
-            "athlete_name": breakdown.athlete_name,
-            "profile": breakdown.profile,
-            "profile_medium": breakdown.profile_medium,
-            "week_start": breakdown.week_start,
-            "week_end": breakdown.week_end,
-            "total_points": breakdown.total_points,
-            "base_points": breakdown.base_points,
-            "consistency_bonus": breakdown.consistency_bonus,
-            "race_bonus": breakdown.race_bonus,
-            "days_active": breakdown.days_active,
-            "activities": breakdown.daily_activities,
+            "athlete_id": athlete_id,
+            "athlete_name": weekly_breakdown.athlete_name,
+            "profile": weekly_breakdown.profile,
+            "profile_medium": weekly_breakdown.profile_medium,
+            # This week stats
+            "week_start": weekly_breakdown.week_start,
+            "week_end": weekly_breakdown.week_end,
+            "week_total_points": weekly_breakdown.total_points,
+            "week_base_points": weekly_breakdown.base_points,
+            "week_consistency_bonus": weekly_breakdown.consistency_bonus,
+            "week_race_bonus": weekly_breakdown.race_bonus,
+            "week_days_active": weekly_breakdown.days_active,
+            # All-time stats
+            "all_time_total_points": all_time_stats["total_points"],
+            "all_time_base_points": all_time_stats["base_points"],
+            "all_time_bonuses": all_time_stats["consistency_bonus"]
+            + all_time_stats["race_bonus"],
+            "all_time_days_active": all_time_stats["days_active"],
+            # Paginated activities
+            "activities": all_time_stats["activities"],
+            "total_activities": all_time_stats["total_count"],
+            "page": page,
+            "page_size": page_size,
+            "total_pages": all_time_stats["total_pages"],
         },
     )
 

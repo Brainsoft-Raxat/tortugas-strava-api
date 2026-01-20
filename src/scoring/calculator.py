@@ -98,3 +98,98 @@ def get_week_boundaries(date: datetime) -> tuple[datetime, datetime]:
     week_end = week_start + timedelta(days=7)
 
     return week_start, week_end
+
+
+def get_period_boundaries(
+    period: str, custom_start: datetime | None = None, custom_end: datetime | None = None
+) -> tuple[datetime, datetime, str]:
+    """Get date boundaries for specified period type.
+
+    Parameters
+    ----------
+    period : str
+        Period type: 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'last_year', 'custom'
+    custom_start : datetime | None
+        Start date for custom period (required if period='custom')
+    custom_end : datetime | None
+        End date for custom period (required if period='custom')
+
+    Returns
+    -------
+    tuple[datetime, datetime, str]
+        (start_date, end_date, period_label) where:
+        - start_date is the beginning of the period (inclusive)
+        - end_date is the end of the period (exclusive)
+        - period_label is a human-readable description
+
+    Raises
+    ------
+    ValueError
+        If period is 'custom' but custom_start or custom_end is missing
+        If period is not one of the valid options
+    """
+    now = datetime.now()
+
+    if period == "this_week":
+        start, end = get_week_boundaries(now)
+        label = f"{start.strftime('%Y-%m-%d')} - {(end - timedelta(days=1)).strftime('%Y-%m-%d')}"
+        return start, end, label
+
+    elif period == "last_week":
+        # Get last week's Monday
+        last_week = now - timedelta(days=7)
+        start, end = get_week_boundaries(last_week)
+        label = f"{start.strftime('%Y-%m-%d')} - {(end - timedelta(days=1)).strftime('%Y-%m-%d')}"
+        return start, end, label
+
+    elif period == "this_month":
+        # Get first day of this month to now (or end of month if you want full month)
+        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        # Get first day of next month
+        if start.month == 12:
+            end = start.replace(year=start.year + 1, month=1)
+        else:
+            end = start.replace(month=start.month + 1)
+        label = start.strftime("%B %Y")
+        return start, end, label
+
+    elif period == "last_month":
+        # Get first day of last month
+        first_of_this_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end = first_of_this_month
+        # Get first day of last month
+        if first_of_this_month.month == 1:
+            start = first_of_this_month.replace(year=first_of_this_month.year - 1, month=12)
+        else:
+            start = first_of_this_month.replace(month=first_of_this_month.month - 1)
+        label = start.strftime("%B %Y")
+        return start, end, label
+
+    elif period == "this_year":
+        # Get Jan 1 of this year to end of this year
+        this_year = now.year
+        start = datetime(this_year, 1, 1, 0, 0, 0)
+        end = datetime(this_year + 1, 1, 1, 0, 0, 0)
+        label = str(this_year)
+        return start, end, label
+
+    elif period == "last_year":
+        # Get Jan 1 to Dec 31 of last year
+        last_year = now.year - 1
+        start = datetime(last_year, 1, 1, 0, 0, 0)
+        end = datetime(last_year + 1, 1, 1, 0, 0, 0)
+        label = str(last_year)
+        return start, end, label
+
+    elif period == "custom":
+        if custom_start is None or custom_end is None:
+            raise ValueError("custom_start and custom_end are required for custom period")
+        start = custom_start.replace(hour=0, minute=0, second=0, microsecond=0)
+        end = custom_end.replace(hour=0, minute=0, second=0, microsecond=0)
+        label = f"{start.strftime('%Y-%m-%d')} - {(end - timedelta(days=1)).strftime('%Y-%m-%d')}"
+        return start, end, label
+
+    else:
+        raise ValueError(
+            f"Invalid period: {period}. Must be one of: this_week, last_week, this_month, last_month, this_year, last_year, custom"
+        )

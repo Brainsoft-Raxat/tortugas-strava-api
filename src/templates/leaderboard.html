@@ -82,6 +82,117 @@
             font-size: 18px;
         }
 
+        .filters {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .custom-filter {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .custom-filter.active {
+            display: block;
+        }
+
+        .custom-filter-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .date-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .date-input-group label {
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .date-input-group input {
+            padding: 10px 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2d3748;
+            font-size: 15px;
+            font-weight: 500;
+            min-width: 160px;
+        }
+
+        .date-input-group input:focus {
+            outline: none;
+            border-color: #fc5200;
+            background: white;
+        }
+
+        .apply-btn {
+            background: #fc5200;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .apply-btn:hover {
+            background: #d74500;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(252, 82, 0, 0.4);
+        }
+
         .leaderboard-card {
             background: white;
             border-radius: 16px;
@@ -332,6 +443,37 @@
                 margin-right: auto;
             }
 
+            .filters {
+                padding: 16px;
+            }
+
+            .filter-buttons {
+                gap: 8px;
+            }
+
+            .filter-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            .custom-filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .date-input-group {
+                width: 100%;
+            }
+
+            .date-input-group input {
+                width: 100%;
+                min-width: unset;
+            }
+
+            .apply-btn {
+                width: 100%;
+            }
+
             table {
                 font-size: 13px;
             }
@@ -348,12 +490,54 @@
         <div class="header">
             <a href="/authorize" class="auth-button">Connect Strava</a>
             <h1>🏆 {{ app_name }}</h1>
-            <div class="subtitle">Weekly Leaderboard</div>
+            <div class="subtitle">Leaderboard</div>
         </div>
 
-        {% if week_start and week_end %}
+        <!-- Time Period Filters -->
+        <div class="filters">
+            <div class="filter-buttons">
+                <a href="/scoring/dashboard?period=this_week" class="filter-btn {% if period == 'this_week' %}active{% endif %}">
+                    This Week
+                </a>
+                <a href="/scoring/dashboard?period=last_week" class="filter-btn {% if period == 'last_week' %}active{% endif %}">
+                    Last Week
+                </a>
+                <a href="/scoring/dashboard?period=this_month" class="filter-btn {% if period == 'this_month' %}active{% endif %}">
+                    This Month
+                </a>
+                <a href="/scoring/dashboard?period=last_month" class="filter-btn {% if period == 'last_month' %}active{% endif %}">
+                    Last Month
+                </a>
+                <a href="/scoring/dashboard?period=this_year" class="filter-btn {% if period == 'this_year' %}active{% endif %}">
+                    This Year
+                </a>
+                <a href="/scoring/dashboard?period=last_year" class="filter-btn {% if period == 'last_year' %}active{% endif %}">
+                    Last Year
+                </a>
+                <button type="button" class="filter-btn {% if period == 'custom' %}active{% endif %}" onclick="toggleCustomFilter()">
+                    Custom Range
+                </button>
+            </div>
+
+            <div id="customFilter" class="custom-filter {% if period == 'custom' %}active{% endif %}">
+                <form class="custom-filter-form" method="get" action="/scoring/dashboard">
+                    <input type="hidden" name="period" value="custom">
+                    <div class="date-input-group">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" required>
+                    </div>
+                    <div class="date-input-group">
+                        <label for="end_date">End Date</label>
+                        <input type="date" id="end_date" name="end_date" required>
+                    </div>
+                    <button type="submit" class="apply-btn">Apply</button>
+                </form>
+            </div>
+        </div>
+
+        {% if period_label %}
         <div class="week-info">
-            📅 {{ week_start }} - {{ week_end }}
+            📅 {{ period_label }}
         </div>
         {% endif %}
 
@@ -487,6 +671,13 @@
             {% endif %}
         </div>
     </div>
+
+    <script>
+        function toggleCustomFilter() {
+            const customFilter = document.getElementById('customFilter');
+            customFilter.classList.toggle('active');
+        }
+    </script>
 </body>
 
 </html>
